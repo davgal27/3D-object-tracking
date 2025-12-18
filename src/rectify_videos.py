@@ -5,8 +5,6 @@ import cv2
 import numpy as np
 
 # =========================
-# SETTINGS (relative to src/)
-# =========================
 RUN_DIR = os.path.join("..","data", "video", "20251218_002232")
 CALIB_JSON = "stereo_calib_grid_fixed.json"
 
@@ -69,7 +67,7 @@ def main():
     left_id = os.path.basename(left_path).replace("_color.avi", "")
     right_id = os.path.basename(right_path).replace("_color.avi", "")
 
-    print("✅ Using videos:")
+    print(" Using videos:")
     print("   cam1 =", left_path)
     print("   cam2 =", right_path)
 
@@ -147,7 +145,7 @@ def main():
     if vwDbg is not None:
         vwDbg.release()
 
-    print("\n✅ Rectification done (fixed).")
+    print("\n Rectification done (fixed).")
     print("Saved:", outL)
     print("Saved:", outR)
     if WRITE_DEBUG:

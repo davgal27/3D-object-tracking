@@ -210,7 +210,7 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
 
     left_vid, right_vid = find_rect_videos(RECT_DIR)
-    print("✅ Rect videos:")
+    print(" Rect videos:")
     print("   L:", left_vid)
     print("   R:", right_vid)
 
@@ -369,7 +369,7 @@ def main():
     f2d.close()
     f3d.close()
 
-    print("\n✅ Done.")
+    print("\n Done.")
     print("2D CSV:", ball2d_path)
     print("3D CSV:", traj3d_path)
     if WRITE_DEBUG_VIDEOS:

@@ -10,7 +10,7 @@ OUTPUT_CSV = "outputs/stereo_centroids.csv"
 
 LOWER_ORANGE = np.array([12, 150, 100])
 UPPER_ORANGE = np.array([23, 255, 255])
-MIN_CONTOUR_AREA = 200s
+MIN_CONTOUR_AREA = 200
 SHOW_DEBUG = True
 FRAME_START = 1
 DISPLAY_WIDTH = 800  # width for each video on screen

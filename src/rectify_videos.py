@@ -11,7 +11,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 RUN_DIR = os.path.join(PROJECT_ROOT, "data", "video", "20251218_002232")
 CALIB_JSON = os.path.join(PROJECT_ROOT, "outputs", "calibration_outputs.json")
 
-OUT_DIR = os.path.join(RUN_DIR, "rectified_fix")
+OUT_DIR = os.path.join(RUN_DIR, "rectified")
 FOURCC = "MJPG"
 WRITE_DEBUG = True
 
@@ -58,6 +58,10 @@ def draw_epipolar_lines(img, step=80):
 
 
 def main():
+
+    if not os.path.exists(CALIB_JSON):
+        raise RuntimeError(f"Calibration JSON not found: {CALIB_JSON}")
+    
     os.makedirs(OUT_DIR, exist_ok=True)
 
     vids = sorted(glob.glob(os.path.join(RUN_DIR, "*_color.avi")))

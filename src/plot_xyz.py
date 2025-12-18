@@ -1,8 +1,13 @@
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..")) 
+CSV_PATH = os.path.join(PROJECT_ROOT, "outputs", "xyz_frame.csv")
+
 # Load CSV (skip header)
-data = np.loadtxt("outputs/xyz_frame.csv", delimiter=',', skiprows=1)
+data = np.loadtxt(CSV_PATH, delimiter=",", skiprows=1)
 
 frames = data[:, 0]
 X = data[:, 1]

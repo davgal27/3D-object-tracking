@@ -2,11 +2,16 @@ import cv2
 import numpy as np
 import csv
 import json
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ====== File paths ======
-CSV_INPUT = "outputs/stereo_centroids.csv"  # your current centroids
-JSON_CALIB = "outputs/calibration_outputs.json"            # your calibration JSON
-CSV_OUTPUT = "outputs/xyz_frame.csv"       # new file with X,Y,Z
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+
+CSV_INPUT  = os.path.join(PROJECT_ROOT, "outputs", "stereo_centroids.csv")
+JSON_CALIB = os.path.join(PROJECT_ROOT, "outputs", "calibration_outputs.json")
+CSV_OUTPUT = os.path.join(PROJECT_ROOT, "outputs", "xyz_frame.csv")
 
 # ====== Load calibration ======
 with open(JSON_CALIB) as f:

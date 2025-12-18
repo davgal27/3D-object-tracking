@@ -9,7 +9,7 @@ import numpy as np
 # Settings (relative to src/)
 # -------------------------
 DATASET_DIR = os.path.join("..", "data", "calib")
-OUT_JSON = "stereo_calib_grid_fixed.json"
+OUT_JSON = "outputs/calibration_outputs.json"
 
 MARKERS_X = 5
 MARKERS_Y = 7
@@ -286,3 +286,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

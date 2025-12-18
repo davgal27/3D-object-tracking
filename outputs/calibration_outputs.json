@@ -8,8 +8,8 @@
   "markerLength": 0.02,
   "markerSeparation": 0.007,
   "dict": "DICT_4X4_50",
-  "cam1_id": "267601CA2FC6", // right 
-  "cam2_id": "267601CA2FC7", // left 
+  "cam1_id": "267601CA2FC6",
+  "cam2_id": "267601CA2FC7", 
   "K1": [
     1681.5255512146973,
     0.0,
@@ -151,3 +151,4 @@
   "stereo_flags": 256,
   "rectify_alpha": 1.0
 }
+

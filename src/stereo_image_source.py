@@ -1,3 +1,4 @@
+# Code provided by lecturer
 
 from pypylon import genicam
 from pypylon import pylon
@@ -135,3 +136,4 @@ class ImageSource:
     def get_images(self):
         images = [self.q.get() for i in range(len(self.cameras))]
         return images
+

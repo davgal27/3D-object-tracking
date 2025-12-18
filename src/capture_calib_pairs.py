@@ -1,11 +1,12 @@
 import os
 import cv2
 from stereo_image_source import ImageSource
-
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 # -------------------------
 # Configuration
 # -------------------------
-OUT_DIR = os.path.join("..", "data", "calib")
+OUT_DIR = os.path.join(PROJECT_ROOT, "data", "calib")
 
 EXPOSURE_US = 20000
 GAIN = 0.0

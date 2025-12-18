@@ -8,8 +8,13 @@ import numpy as np
 # -------------------------
 # Settings (relative to src/)
 # -------------------------
-DATASET_DIR = os.path.join("..", "data", "calib")
-OUT_JSON = "outputs/calibration_outputs.json"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+
+DATASET_DIR = os.path.join(PROJECT_ROOT, "data", "calib")
+OUT_JSON = os.path.join(PROJECT_ROOT, "outputs", "calibration_outputs.json")
+
+os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
 
 MARKERS_X = 5
 MARKERS_Y = 7
@@ -222,7 +227,7 @@ def main():
     rmsA, K1, D1 = calibrate_intrinsics(objA_list, imgA_list, image_size)
     rmsB, K2, D2 = calibrate_intrinsics(objB_list, imgB_list, image_size)
 
-    # Stereo calibration (intrinsics fixed)
+    # Stereo calibration 
     crit = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, 1e-7)
     rms_st, K1o, D1o, K2o, D2o, R, T, E, F = cv2.stereoCalibrate(
         stereo_obj, stereo_imgA, stereo_imgB,
@@ -275,6 +280,8 @@ def main():
         "stereo_flags": int(STEREO_FLAGS),
         "rectify_alpha": float(RECTIFY_ALPHA),
     }
+     
+    os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
 
     with open(OUT_JSON, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2)

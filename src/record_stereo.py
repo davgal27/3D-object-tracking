@@ -8,7 +8,11 @@ from stereo_image_source import ImageSource
 # -------------------------
 # Settings
 # -------------------------
-OUT_DIR_BASE = os.path.join("..", "data", "video")
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+OUT_DIR_BASE = os.path.join(PROJECT_ROOT, "data", "video")
+
 DURATION_S = 12
 SHOW_PREVIEW = False
 

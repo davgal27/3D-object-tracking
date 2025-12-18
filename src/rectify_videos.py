@@ -5,8 +5,11 @@ import cv2
 import numpy as np
 
 # =========================
-RUN_DIR = os.path.join("..","data", "video", "20251218_002232")
-CALIB_JSON = "stereo_calib_grid_fixed.json"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+
+RUN_DIR = os.path.join(PROJECT_ROOT, "data", "video", "20251218_002232")
+CALIB_JSON = os.path.join(PROJECT_ROOT, "outputs", "calibration_outputs.json")
 
 OUT_DIR = os.path.join(RUN_DIR, "rectified_fix")
 FOURCC = "MJPG"

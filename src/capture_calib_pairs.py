@@ -7,7 +7,7 @@ from stereo_image_source import ImageSource
 # =========================
 # ΡΥΘΜΙΣΕΙΣ
 # =========================
-OUT_DIR = os.path.join("data", "calib")  # θα φτιαχτεί αυτόματα (μέσα στο src)
+OUT_DIR = os.path.join("..", "data", "calib")
 EXPOSURE_US = 20000
 GAIN = 0.0
 FORCE_FULL_FRAME = True

@@ -7,7 +7,7 @@ import numpy as np
 # =========================
 # SETTINGS (relative to src/)
 # =========================
-RUN_DIR = os.path.join("data", "video", "20251218_002232")
+RUN_DIR = os.path.join("..","data", "video", "20251218_002232")
 CALIB_JSON = "stereo_calib_grid_fixed.json"
 
 OUT_DIR = os.path.join(RUN_DIR, "rectified_fix")

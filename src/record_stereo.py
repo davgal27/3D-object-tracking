@@ -9,7 +9,7 @@ from stereo_image_source import ImageSource
 # =========================
 # SETTINGS
 # =========================
-OUT_DIR_BASE = os.path.join("data", "video")
+OUT_DIR_BASE = os.path.join("..", "data", "video")
 
 DURATION_S   = 12          # Real time capture duration (seconds)
 SHOW_PREVIEW = False       # Preview can reduce FPS a lot (keep False for best performance)

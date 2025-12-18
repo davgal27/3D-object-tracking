@@ -8,7 +8,7 @@ import numpy as np
 # =========================
 # SETTINGS (relative to src/)
 # =========================
-DATASET_DIR = os.path.join("data", "calib")          # data/calib/<camid>/*.png|jpg...
+DATASET_DIR = os.path.join("..", "data", "calib")       # data/calib/<camid>/*.png|jpg...
 OUT_JSON    = "stereo_calib_grid_fixed.json"
 
 # Your board:

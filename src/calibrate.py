@@ -1,3 +1,4 @@
+# Stereo Calibration using an ArUco GridBoard
 import os
 import re
 import json
@@ -11,21 +12,25 @@ import numpy as np
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 
+# Folder with calibration images:
 DATASET_DIR = os.path.join(PROJECT_ROOT, "data", "calib")
+# Where to save the calibration results
 OUT_JSON = os.path.join(PROJECT_ROOT, "outputs", "calibration_outputs.json")
-
 os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
 
+# Board geometry in meters 
 MARKERS_X = 5
 MARKERS_Y = 7
+
 DICT_NAME = "DICT_4X4_50"
 MARKER_LENGTH_M = 0.020
 MARKER_SEP_M = 0.007
 
-DETECT_MAX_WIDTH = 0          # 0 = no resize (safest)
+DETECT_MAX_WIDTH = 0      # Optional resize for detection speed (0 means no resize)
 MIN_POINTS_PER_VIEW = 12
 
 STEREO_FLAGS = cv2.CALIB_FIX_INTRINSIC
+# Rectification settings
 RECTIFY_ALPHA = 1.0
 RECTIFY_FLAGS = cv2.CALIB_ZERO_DISPARITY
 # -------------------------
@@ -37,7 +42,7 @@ def aruco_dict(name: str):
         raise ValueError(f"Unknown ArUco dict: {name}")
     return cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, name))
 
-
+# ArUco detection works on grayscale
 def to_gray(img):
     return img if img.ndim == 2 else cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -59,6 +64,7 @@ def detect_markers_fullres(gray, dct, max_w: int):
     if ids is None or len(ids) == 0:
         return None, None
 
+    # Scale corners back to full
     corners_full = []
     for c in corners:
         cf = c.copy()
@@ -68,12 +74,12 @@ def detect_markers_fullres(gray, dct, max_w: int):
 
     return corners_full, ids.astype(np.int32)
 
-
+# we use the last number in the filename for the next ones 
 def last_int_in_name(path: str):
     nums = re.findall(r"(\d+)", os.path.basename(path))
     return int(nums[-1]) if nums else None
 
-
+# Convert detected markers into (object points, image points) for this board.
 def collect_images(dataset_dir: str):
     """
     Returns: {cam_id: {idx: filepath}}
@@ -101,7 +107,7 @@ def collect_images(dataset_dir: str):
         raise RuntimeError("Could not find two valid camera image sets with numeric filenames.")
     return cam_map
 
-
+ # For stereo we want the same marker IDs in left and right image,
 def board_points(board, corners, ids):
     """
     Convert detected markers to matched object/image points for the board.
@@ -127,7 +133,8 @@ def keep_common_ids(corners, ids, common_ids):
     corners_out = [p[1] for p in pairs]
     return corners_out, ids_out
 
-
+# Calibrate K and distortion for one camera.
+    # I use an initial guess and FIX_ASPECT_RATIO to keep fx/fy stable.
 def calibrate_intrinsics(obj_list, img_list, image_size):
     """
     Intrinsics calibration with fixed aspect ratio (square pixel assumption).
@@ -149,7 +156,8 @@ def calibrate_intrinsics(obj_list, img_list, image_size):
 def main():
     if not hasattr(cv2, "aruco"):
         raise RuntimeError("OpenCV aruco module not found. Install opencv-contrib-python.")
-
+   
+    # Create the GridBoard object using the same layout/size as the real board
     dct = aruco_dict(DICT_NAME)
     board = cv2.aruco.GridBoard((MARKERS_X, MARKERS_Y), MARKER_LENGTH_M, MARKER_SEP_M, dct)
 
@@ -179,6 +187,7 @@ def main():
             continue
 
         gA, gB = to_gray(imA), to_gray(imB)
+        
         cA, idsA = detect_markers_fullres(gA, dct, DETECT_MAX_WIDTH)
         cB, idsB = detect_markers_fullres(gB, dct, DETECT_MAX_WIDTH)
 
@@ -187,7 +196,8 @@ def main():
             oA, iA, nA = board_points(board, cA, idsA)
             if nA >= MIN_POINTS_PER_VIEW:
                 objA_list.append(oA); imgA_list.append(iA)
-
+        
+        # Collect data for camB intrinsics
         if idsB is not None:
             oB, iB, nB = board_points(board, cB, idsB)
             if nB >= MIN_POINTS_PER_VIEW:
@@ -197,6 +207,7 @@ def main():
         if idsA is None or idsB is None:
             continue
 
+        # Keep only marker IDs that appear in both images
         common_ids = set(map(int, idsA.flatten())) & set(map(int, idsB.flatten()))
         if not common_ids:
             continue
@@ -245,6 +256,7 @@ def main():
         alpha=RECTIFY_ALPHA
     )
 
+     # Save everything to JSON (flatten matrices so it's easy to store)
     out = {
         "img_size": [int(image_size[0]), int(image_size[1])],
         "markersX": int(MARKERS_X),
@@ -293,4 +305,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

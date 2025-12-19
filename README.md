@@ -9,8 +9,8 @@ This project tracks a ball in 3D space using stereo cameras.
 1. **Clone the repository:**
 
 ```bash
-git clone <your-repo-url>
-cd pova-ball-tracking
+git clone <https://github.com/davgal27/3D-object-tracking.git>
+cd 3D-object-tracking
 ```
 
 2. **Create and activate a virtual environment:**

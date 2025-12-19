@@ -3,7 +3,6 @@ import numpy as np
 import csv
 import os
 
-# ===================== USER PARAMETERS =====================
 LEFT_VIDEO_PATH = "data/video/20251218_002232/rectified/267601CA2FC7_rect.avi"
 RIGHT_VIDEO_PATH = "data/video/20251218_002232/rectified/267601CA2FC6_rect.avi"
 OUTPUT_CSV = "outputs/stereo_centroids.csv"
@@ -14,7 +13,7 @@ MIN_CONTOUR_AREA = 200
 SHOW_DEBUG = True
 FRAME_START = 1
 DISPLAY_WIDTH = 800  # width for each video on screen
-# ===========================================================
+
 
 os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
 

@@ -15,15 +15,20 @@ cd 3D-object-tracking
 
 2. **Create and activate a virtual environment:**
 
-```powershell
-# Windows PowerShell
+Windows (PowerShell):
+
+PowerShell
+```pwsh
 python -m venv .env
 .\.env\Scripts\Activate.ps1
-
-# Upgrade pip
-python -m pip install --upgrade pip
 ```
+Linux / macOS:
 
+Bash
+```bash
+python3 -m venv .env
+source .env/bin/activate
+```
 3. **Install dependencies:**
 
 ```bash

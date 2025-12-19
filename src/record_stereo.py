@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 from stereo_image_source import ImageSource
 
+# Record a short stereo "video" by grabbing pairs and then encoding to AVI at the end.
+
 # -------------------------
 # Settings
 # -------------------------
@@ -13,20 +15,22 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 OUT_DIR_BASE = os.path.join(PROJECT_ROOT, "data", "video")
 
-DURATION_S = 12
-SHOW_PREVIEW = False
+DURATION_S = 12 # How long to record
+SHOW_PREVIEW = False # If True, show live preview windows ( reduces the  performance so we put it false )
 
+# Manual camera settings (if ImageSource supports these args)
 EXPOSURE_US = 20000
 GAIN = 0.0
 FORCE_FULL_FRAME = True
 
-TIMEOUT_S = 0.35
-FOURCC = "MJPG"
+TIMEOUT_S = 0.35 # Timeout waiting for frames after trigger
+FOURCC = "MJPG" # code foe avi writing 
+
 BAYER_PATTERN = cv2.COLOR_BayerRG2BGR
-MAX_BUFFER_FRAMES = 7000
+MAX_BUFFER_FRAMES = 7000 # Safety limit so we don’t keep buffering 
 # -------------------------
 
-
+ #Make a new timestamp folder name so each run is separate and we save all the videos 
 def unique_run_dir(base_dir: str) -> str:
     """Create a new timestamped output folder without overwriting existing runs."""
     stamp = time.strftime("%Y%m%d_%H%M%S")
@@ -43,10 +47,10 @@ def unique_run_dir(base_dir: str) -> str:
 
 def main():
     os.makedirs(OUT_DIR_BASE, exist_ok=True)
-    run_dir = unique_run_dir(OUT_DIR_BASE)
+    run_dir = unique_run_dir(OUT_DIR_BASE) # Create a unique folder for this recording 
     os.makedirs(run_dir, exist_ok=True)
 
-    # Open ImageSource (supports versions with and without kwargs)
+    # Open ImageSource 
     try:
         src = ImageSource(
             use_auto_exposure=False,
@@ -69,7 +73,7 @@ def main():
             except TypeError:
                 return src.get_images()
 
-    # Startup grab: discover camera IDs and frame size
+    # Startup grab: to find camera IDs and frame size
     src.trigger_cameras()
     images = get_images(TIMEOUT_S)
     if not images or len(images) < 2:
@@ -89,15 +93,16 @@ def main():
     print("Cameras:", cam_ids)
     print(f"Frame size: {W}x{H} | sample shape={sample.shape} dtype={sample.dtype}")
 
-    # Buffers for raw frames (keeps capture fast) + timing rows
+    # Buffers for raw frames (we store raw frames first, encode later)
     buf0, buf1 = [], []
-    pair_times = []
-    ts_rows = []
-    frame_idx = 0
+    pair_times = [] # For FPS estimation
+    ts_rows = []  # Rows to write in timestamps.csv
+    frame_idx = 0  # Counter for accepted frames
     stop = False
 
     t_end = time.perf_counter() + float(DURATION_S)
 
+    # capture loop
     while not stop and time.perf_counter() < t_end and frame_idx < MAX_BUFFER_FRAMES:
         src.trigger_cameras()
         trig_wall = time.time()
@@ -107,7 +112,8 @@ def main():
         cap_wall = time.time()
 
         ok = int((cam0 in frames) and (cam1 in frames))
-
+        
+        # Make sure both images have the same siz
         if ok:
             ts0, img0 = frames[cam0]
             ts1, img1 = frames[cam1]
@@ -118,6 +124,7 @@ def main():
             if img1.shape[:2] != (H, W):
                 img1 = cv2.resize(img1, (W, H), interpolation=cv2.INTER_AREA)
 
+             # Store copies in RAM (fast capture, encoding happens later)
             buf0.append(img0.copy())
             buf1.append(img1.copy())
             pair_times.append(time.perf_counter())
@@ -149,6 +156,7 @@ def main():
     if SHOW_PREVIEW:
         cv2.destroyAllWindows()
 
+    # Close camera source
     try:
         src.close()
     except Exception:
@@ -164,6 +172,7 @@ def main():
         ])
         wcsv.writerows(ts_rows)
 
+    # how many accepted stereo pers we have 
     n = len(buf0)
     if n == 0:
         print("Error: no stereo pairs captured. Only timestamps saved:", ts_csv)
@@ -176,6 +185,7 @@ def main():
     else:
         fps_out = 1.0
 
+    # Setup VideoWriter for each camera
     fourcc = cv2.VideoWriter_fourcc(*FOURCC)
     out0 = os.path.join(run_dir, f"{cam0}_color.avi")
     out1 = os.path.join(run_dir, f"{cam1}_color.avi")
@@ -200,6 +210,7 @@ def main():
             except cv2.error:
                 b = cv2.cvtColor(b, cv2.COLOR_GRAY2BGR)
 
+        # Write frame to the output video
         vw0.write(a)
         vw1.write(b)
 
@@ -214,3 +225,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

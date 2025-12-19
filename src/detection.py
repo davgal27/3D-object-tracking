@@ -7,8 +7,8 @@ import os
 LEFT_VIDEO_PATH = "data/video/20251218_002232/rectified/267601CA2FC7_rect.avi"
 RIGHT_VIDEO_PATH = "data/video/20251218_002232/rectified/267601CA2FC6_rect.avi"
 OUTPUT_CSV = "outputs/stereo_centroids.csv"
-
-LOWER_ORANGE = np.array([12, 150, 100])
+# this range of orange allowed for only the ball and its reflection to be detected on the table 
+LOWER_ORANGE = np.array([12, 150, 100]) 
 UPPER_ORANGE = np.array([23, 255, 255])
 MIN_CONTOUR_AREA = 200
 SHOW_DEBUG = True
@@ -28,9 +28,17 @@ capL.set(cv2.CAP_PROP_POS_FRAMES, FRAME_START)
 capR.set(cv2.CAP_PROP_POS_FRAMES, FRAME_START)
 frame_idx = FRAME_START
 
+# The following method was my way of solving for the reflection of the ball being almost the same colour as the ball
+# since this was the case, simply creating a mask for colour was not going to be anough
+# therefore what i did was increase the range above for orange to make sure the reflection detection is as smooth as possible
+# Then, create a bounding box over the whole detected contour.
+# Since the reflection and the ball grew proportionally according to where they are in the Z- axis, and
+# the reflection and the ball had very close to the same sizes, it was appropriate to calculate the centroid by
+# getting the bounding box, dividing it in half, and calculating the centroid in only the top half of it, which would be the ball. 
+
 def detect_top_half_centroid(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, LOWER_ORANGE, UPPER_ORANGE)
+    mask = cv2.inRange(hsv, LOWER_ORANGE, UPPER_ORANGE) # idea for using a mask from cv assignments
     mask = cv2.erode(mask, None, iterations=2)
     mask = cv2.dilate(mask, None, iterations=2)
 
@@ -104,7 +112,7 @@ with open(OUTPUT_CSV, mode="w", newline="") as csvfile:
 
             # Side by side
             combined = np.hstack([maskL_disp, maskR_disp])
-            cv2.imshow("Stereo Masks with Centroids & Boxes", combined)
+            cv2.imshow("Masks side by side", combined)
 
             if cv2.waitKey(1) & 0xFF == 27:
                 break

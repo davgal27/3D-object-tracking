@@ -12,35 +12,38 @@ RUN_DIR = os.path.join(PROJECT_ROOT, "data", "video", "20251218_002232")
 CALIB_JSON = os.path.join(PROJECT_ROOT, "outputs", "calibration_outputs.json")
 
 OUT_DIR = os.path.join(RUN_DIR, "rectified")
-FOURCC = "MJPG"
+FOURCC = "MJPG" # Codec used for writing AVI outputs
 WRITE_DEBUG = True
 
-# alpha=1 keeps more FOV (less "zoom"/crop) but may show black borders.
+# alpha=1 keeps more FOV (less "zoom"/crop) .
 ALPHA = 1.0
 FLAGS = cv2.CALIB_ZERO_DISPARITY
 # =========================
 
-
+# Convert a flat 9-element list to a 3x3 matrix
 def _mat3x3(flat9):
     return np.array(flat9, dtype=np.float64).reshape(3, 3)
 
-
+# Load K/D and R/T from the saved JSON file
 def load_calib(path: str):
     with open(path, "r", encoding="utf-8") as f:
         j = json.load(f)
 
-    W, H = j["img_size"]  # [1920,1200]
+    W, H = j["img_size"]  # img size 
+
+    # Intrinsics + distortion for camera 1
     K1 = _mat3x3(j["K1"])
     D1 = np.array(j["D1"], dtype=np.float64).reshape(-1, 1)
+    # Intrinsics + distortion for camera 2
     K2 = _mat3x3(j["K2"])
     D2 = np.array(j["D2"], dtype=np.float64).reshape(-1, 1)
-
+    # Stereo extrinsics (cam1 -> cam2)
     R = _mat3x3(j["R"])
     T = np.array(j["T"], dtype=np.float64).reshape(3, 1)
 
     return (W, H), K1, D1, K2, D2, R, T
 
-
+# Build undistort+rectify maps for cv2.remap
 def build_maps(W, H, K, D, Rrect, P):
     newK = P[:3, :3]  # 3x3
     map1, map2 = cv2.initUndistortRectifyMap(
@@ -48,7 +51,7 @@ def build_maps(W, H, K, D, Rrect, P):
     )
     return map1, map2
 
-
+# Draw horizontal lines to quickly check if rectification looks correct
 def draw_epipolar_lines(img, step=80):
     out = img.copy()
     h = out.shape[0]
@@ -58,12 +61,13 @@ def draw_epipolar_lines(img, step=80):
 
 
 def main():
-
+    # Stop early if calibration file is missing
     if not os.path.exists(CALIB_JSON):
         raise RuntimeError(f"Calibration JSON not found: {CALIB_JSON}")
     
     os.makedirs(OUT_DIR, exist_ok=True)
-
+    
+    # Find the two recorded videos
     vids = sorted(glob.glob(os.path.join(RUN_DIR, "*_color.avi")))
     if len(vids) < 2:
         raise RuntimeError(f"Did not find 2 '*_color.avi' videos in: {RUN_DIR}")
@@ -78,14 +82,16 @@ def main():
     print("   cam1 =", left_path)
     print("   cam2 =", right_path)
 
+     # Load calibration parameters
     (Wc, Hc), K1, D1, K2, D2, R, T = load_calib(CALIB_JSON)
 
-    # IMPORTANT: recompute stereo rectification properly from K/D/R/T and correct image_size=(W,H)
+    # Recompute rectification from K/D/R/T using the correct image size
     image_size = (Wc, Hc)
     R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(
         K1, D1, K2, D2, image_size, R, T, flags=FLAGS, alpha=ALPHA
     )
 
+    # Precompute remap maps for left and right camera
     map1L, map2L = build_maps(Wc, Hc, K1, D1, R1, P1)
     map1R, map2R = build_maps(Wc, Hc, K2, D2, R2, P2)
 
@@ -96,14 +102,17 @@ def main():
     if not capR.isOpened():
         raise RuntimeError(f"Cannot open: {right_path}")
 
+    # Read FPS from videos (fallback to 20 if missing)
     fpsL = capL.get(cv2.CAP_PROP_FPS) or 0
     fpsR = capR.get(cv2.CAP_PROP_FPS) or 0
     fps = float(fpsL if fpsL > 0 else (fpsR if fpsR > 0 else 20.0))
 
+    #paths 
     outL = os.path.join(OUT_DIR, f"{left_id}_rect.avi")
     outR = os.path.join(OUT_DIR, f"{right_id}_rect.avi")
     fourcc = cv2.VideoWriter_fourcc(*FOURCC)
 
+     # VideoWriters for the rectified outputs
     vwL = cv2.VideoWriter(outL, fourcc, fps, (Wc, Hc))
     vwR = cv2.VideoWriter(outR, fourcc, fps, (Wc, Hc))
     if not vwL.isOpened() or not vwR.isOpened():
@@ -125,12 +134,13 @@ def main():
 
         idx += 1
 
-        # Ensure correct size
+        # Ensure correct size (resize if it doesn't match)
         if (frameL.shape[1], frameL.shape[0]) != (Wc, Hc):
             frameL = cv2.resize(frameL, (Wc, Hc), interpolation=cv2.INTER_AREA)
         if (frameR.shape[1], frameR.shape[0]) != (Wc, Hc):
             frameR = cv2.resize(frameR, (Wc, Hc), interpolation=cv2.INTER_AREA)
 
+        # Rectify both frames using the precomputed remap maps
         rectL = cv2.remap(frameL, map1L, map2L, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
         rectR = cv2.remap(frameR, map1R, map2R, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
 
@@ -138,9 +148,10 @@ def main():
         vwR.write(rectR)
 
         if vwDbg is not None:
+            # Draw epipolar lines so we can visually check alignment
             dbgL = draw_epipolar_lines(rectL, step=80)
             dbgR = draw_epipolar_lines(rectR, step=80)
-            side = np.hstack([dbgL, dbgR])
+            side = np.hstack([dbgL, dbgR]) #side by side
             cv2.putText(side, f"frame {idx}", (20, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 2, cv2.LINE_AA)
             vwDbg.write(side)
@@ -162,3 +173,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

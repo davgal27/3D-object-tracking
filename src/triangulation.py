@@ -6,14 +6,13 @@ import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ====== File paths ======
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 
 CSV_INPUT  = os.path.join(PROJECT_ROOT, "outputs", "stereo_centroids.csv")
 JSON_CALIB = os.path.join(PROJECT_ROOT, "outputs", "calibration_outputs.json")
 CSV_OUTPUT = os.path.join(PROJECT_ROOT, "outputs", "xyz_frame.csv")
 
-# ====== Load calibration ======
+# load calibration json
 with open(JSON_CALIB) as f:
     calib = json.load(f)
 
@@ -21,7 +20,7 @@ with open(JSON_CALIB) as f:
 P1 = np.array(calib["P1"]).reshape(3, 4)
 P2 = np.array(calib["P2"]).reshape(3, 4)
 
-# ====== Read CSV and triangulate ======
+# triangulation
 output_rows = []
 
 with open(CSV_INPUT) as f:
@@ -49,11 +48,13 @@ with open(CSV_INPUT) as f:
         Y = point_4d[1][0] / point_4d[3][0]
         Z = point_4d[2][0] / point_4d[3][0]
 
-        Z = -Z
+        Z = -Z # for a reason that we didin't manage to understand, the plotting was flipping the Z axis, meaning 
+        # when the ball moved further away, in the graph it showed it moving faster. Flipping the Z is probably a bandaid
+        # solution, however, it provides accurate deptiction of the ball moving through the 3D space otherwise. 
 
         output_rows.append([frame, X, Y, Z])
 
-# ====== Save to CSV ======
+# Save to CSV 
 with open(CSV_OUTPUT, "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["frame", "X", "Y", "Z"])

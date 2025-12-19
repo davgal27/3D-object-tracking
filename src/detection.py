@@ -4,8 +4,8 @@ import csv
 import os
 
 # ===================== USER PARAMETERS =====================
-LEFT_VIDEO_PATH = "data/video/20251218_002232/rectified_fix/267601CA2FC7_rect.avi"
-RIGHT_VIDEO_PATH = "data/video/20251218_002232/rectified_fix/267601CA2FC6_rect.avi"
+LEFT_VIDEO_PATH = "data/video/20251218_002232/rectified/267601CA2FC7_rect.avi"
+RIGHT_VIDEO_PATH = "data/video/20251218_002232/rectified/267601CA2FC6_rect.avi"
 OUTPUT_CSV = "outputs/stereo_centroids.csv"
 
 LOWER_ORANGE = np.array([12, 150, 100])
